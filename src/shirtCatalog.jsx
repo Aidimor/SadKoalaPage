@@ -126,14 +126,12 @@ export default function ShirtCatalog({ onSelectShirt, onClose }) {
           </button>
         )}
 
-        <header className="catalog-header">
-          <h1>Catálogo de Diseños</h1>
-          <p>Elige tu diseño favorito para comenzar a personalizarlo</p>
+        <header className="catalog-header">      
 
           <div className="catalog-search-wrapper">
             <input
               type="text"
-              placeholder="Buscar por nombre o etiquetas (ej. anime, carro...)"
+              placeholder="Buscar por nombre o etiquetas..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="catalog-search-input"

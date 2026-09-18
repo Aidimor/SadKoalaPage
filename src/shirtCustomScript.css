@@ -75,7 +75,7 @@
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  perspective: 3000px;
+
 
   
 }
@@ -83,11 +83,13 @@
 /* Estilos exclusivos para cuando está en el modo personalizador */
 .customizer-container .shirt-design-stage-3d {
    transform: translateX(-19px);
+     perspective: 1000px;
 }
 
 /* Estilos exclusivos por si quieres que en el catálogo se vea diferente */
 .catalog-container .shirt-design-stage-3d {
-    transform: translateX(2.5px);
+    transform: translateX(1.5px);
+      perspective: 350px;
     scale: 1.1;
 }
 

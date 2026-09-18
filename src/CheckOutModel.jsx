@@ -1,218 +1,208 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { animate, stagger } from "animejs";
+import playmat1 from "./assets/playmat1.webp";
 
-const supabase = createClient("https://wnezxpgkymojzotrzcmc.supabase.co", "sb_publishable_GWwMGvh0jiuJKxlV_EXnrA_q-yk3899");
+const supabase = createClient(
+  "https://wnezxpgkymojzotrzcmc.supabase.co",
+  "sb_publishable_GWwMGvh0jiuJKxlV_EXnrA_q-yk3899"
+);
 
-export default function CheckoutModal({ product, selectedSize, onClose }) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
-  const [city, setCity] = useState("");
-  const [postalCode, setPostalCode] = useState("");
-  
-  const [imageFile, setImageFile] = useState(null);
-  const [loading, setLoading] = useState(false);
+export default function PlaymatCatalog({ onSelectPlaymat }) {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const handleProcessPayment = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  const gridRef = useRef(null);
+  const hasAnimatedInitial = useRef(false);
 
-    try {
-      const hdFileToUpload = product?.rawFile || imageFile;
+  useEffect(() => {
+    async function fetchCatalog() {
+      try {
+        const { data, error } = await supabase
+          .from("Playmats")
+          .select("*")
+          .eq("active", true);
 
-      if (!hdFileToUpload) {
-        alert("Por favor selecciona una imagen para el producto.");
-        setLoading(false);
-        return;
-      }
-
-      const timestamp = Date.now();
-      const randomStr = Math.random().toString(36).substring(2, 9);
-      
-      const fileExt = hdFileToUpload.name ? hdFileToUpload.name.split('.').pop() : 'png';
-      const cleanFileNameHD = `${timestamp}_${randomStr}_hd.${fileExt}`;
-
-      const { error: uploadErrorHD } = await supabase.storage
-        .from("playmats")
-        .upload(cleanFileNameHD, hdFileToUpload, { cacheControl: "3600", upsert: false });
-
-      if (uploadErrorHD) throw new Error(`Supabase HD: ${uploadErrorHD.message}`);
-
-      const { data: publicUrlDataHD } = supabase.storage
-        .from("playmats")
-        .getPublicUrl(cleanFileNameHD);
-
-      const imageUrl = publicUrlDataHD?.publicUrl;
-
-      let imagePreviewUrl = imageUrl;
-
-      if (product?.screenshotDataUrl) {
-        const previewBlob = await (await fetch(product.screenshotDataUrl)).blob();
-        const cleanFileNamePreview = `${timestamp}_${randomStr}_encuadre.png`;
-
-        const { error: uploadErrorPreview } = await supabase.storage
-          .from("playmats")
-          .upload(cleanFileNamePreview, previewBlob, {
-            cacheControl: "3600",
-            contentType: "image/png",
-            upsert: false
-          });
-
-        if (!uploadErrorPreview) {
-          const { data: publicUrlDataPreview } = supabase.storage
-            .from("playmats")
-            .getPublicUrl(cleanFileNamePreview);
-
-          if (publicUrlDataPreview?.publicUrl) {
-            imagePreviewUrl = publicUrlDataPreview.publicUrl;
-          }
+        if (error) {
+          setErrorMessage(`Error: ${error.message}`);
+          setLoading(false);
+          return;
         }
+
+        if (!data || data.length === 0) {
+          setErrorMessage("Sin diseños disponibles.");
+          setLoading(false);
+          return;
+        }
+
+        setItems(data);
+        setLoading(false);
+      } catch (err) {
+        setErrorMessage(`Error de conexión: ${err.message}`);
+        setLoading(false);
       }
-
-      const rawName = (product?.name || "Producto Personalizado").toString();
-      const rawCat = (product?.category || "").toString().toLowerCase();
-      const isPlaymat = rawCat.includes("playmat") || rawName.toLowerCase().includes("playmat");
-
-      const itemData = {
-        producto: rawName,
-        tipo: isPlaymat ? "playmat" : "playera",
-        talla: selectedSize || product?.size || (isPlaymat ? "Estándar" : "G"),
-        color: product?.color || product?.selectedColor || "Estándar",
-        precio: Number(product?.price) || (isPlaymat ? 450 : 350),
-        imagenUrl: imageUrl,
-        imagenPreviewUrl: imagePreviewUrl
-      };
-
-      // Construcción limpia del mensaje para Telegram
-      let captionHtml = `<b>📦 NUEVO PEDIDO DIRECTO</b>\n`;
-      captionHtml += `<b>Cliente:</b> ${name}\n`;
-      captionHtml += `<b>Contacto:</b> ${phone} | ${email}\n`;
-      captionHtml += `<b>Dirección:</b> ${address}, ${city} (CP ${postalCode})\n\n`;
-      captionHtml += `<b>───────────────</b>\n`;
-      captionHtml += `📌 <b>Producto:</b> ${itemData.producto}\n`;
-      captionHtml += `${itemData.tipo === "playmat" ? "🎴" : "👕"} <b>Talla/Tipo:</b> ${itemData.talla} | <b>Color:</b> ${itemData.color}\n`;
-      captionHtml += `💰 <b>Precio:</b> $${itemData.precio} MXN\n`;
-      captionHtml += `💾 <a href="${itemData.imagenUrl}">Descargar Archivo HD</a>\n`;
-
-      const payload = {
-        items: [itemData],
-        totalPrecio: itemData.precio,
-        captionHtml: captionHtml,
-        imagenPreviewUrl: imagePreviewUrl,
-        cliente: {
-          name: name,
-          email: email,
-          phone: phone,
-          address: address,
-          city: city,
-          postalCode: postalCode
-        },
-        fecha: new Date().toLocaleString()
-      };
-
-      const webhookUrl = "https://hook.us2.make.com/1jtkkvp18vp5m5pjwz31ccvthp1kgtu7";
-
-      const response = await fetch(webhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) throw new Error(`Servidor: ${response.status}`);
-
-      alert("¡Pedido enviado con éxito! 🚀");
-      onClose();
-
-    } catch (error) {
-      console.error("❌ Error:", error);
-      alert(`Error al procesar: ${error.message || error}`);
-    } finally {
-      setLoading(false);
     }
-  };
+
+    fetchCatalog();
+  }, []);
+
+  useEffect(() => {
+    if (!loading && gridRef.current && !hasAnimatedInitial.current) {
+      const cards = gridRef.current.querySelectorAll(".catalog-card-btn");
+      if (cards.length > 0) {
+        hasAnimatedInitial.current = true;
+        animate(cards, {
+          translateY: [15, 0],
+          opacity: [0, 1],
+          duration: 350,
+          ease: "outExpo",
+        });
+      }
+    }
+  }, [loading, items]);
+
+  useEffect(() => {
+    if (!loading && hasAnimatedInitial.current && searchTerm.trim() !== "") {
+      const cards = gridRef.current?.querySelectorAll(".catalog-card-btn");
+      if (cards && cards.length > 0) {
+        animate(cards, {
+          translateY: [15, 0],
+          opacity: [0, 1],
+          delay: stagger(40),
+          duration: 300,
+          ease: "outExpo",
+        });
+      }
+    }
+  }, [searchTerm, loading]);
+
+  const filteredItems = items.filter((item) => {
+    const term = searchTerm.toLowerCase().trim();
+    if (!term) return true;
+    return item.name && item.name.toLowerCase().includes(term);
+  });
+
+  if (errorMessage) {
+    return <div style={{ color: "#ef4444", padding: "10px", fontSize: "0.85rem" }}>{errorMessage}</div>;
+  }
+
+  if (loading) {
+    return <div style={{ color: "#a1a1aa", padding: "10px", fontSize: "0.85rem" }}>Cargando catálogo...</div>;
+  }
 
   return (
-    <div style={modalOverlayStyleModal}>
-      <div style={modalContentStyleModal}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-          <h2 style={{ color: "#fff", margin: 0, fontSize: "1.25rem" }}>Finalizar Pedido</h2>
-          <button onClick={onClose} style={closeButtonStyleModal}>✕</button>
-        </div>
+    <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "10px" }}>
+      <header style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+        <h3 style={{ color: "#fff", margin: 0, fontSize: "0.95rem", fontWeight: "600" }}>
+          Catálogo de Playmats
+        </h3>
+        
+        <input
+          type="text"
+          placeholder="🔍 Buscar arte..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "6px 10px",
+            borderRadius: "4px",
+            border: "1px solid #3f3f46",
+            backgroundColor: "#18181b",
+            color: "#fff",
+            fontSize: "0.8rem",
+            boxSizing: "border-box",
+            outline: "none"
+          }}
+        />
+      </header>
 
-        <div style={summaryBoxStyleModal}>
-          <p style={{ color: "#a1a1aa", margin: "0 0 4px 0", fontSize: "0.85rem" }}>Producto:</p>
-          <p style={{ color: "#fff", margin: 0, fontWeight: "600" }}>{product?.name}</p>
-          <p style={{ color: "#16a34a", margin: "8px 0 0 0", fontWeight: "bold" }}>${product?.price} MXN</p>
-        </div>
+      {/* Lista de botones rectangulares compactos */}
+      <div ref={gridRef} style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        {filteredItems.length > 0 ? (
+          filteredItems.map((item) => {
+            const imageUrl = item.image_url || item.image;
 
-        <form onSubmit={handleProcessPayment} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          {product?.rawFile ? (
-            <div style={{ backgroundColor: "#14532d20", border: "1px solid #16a34a", borderRadius: "8px", padding: "10px", color: "#4ade80", fontSize: "0.85rem" }}>
-              ✓ Captura de pantalla e imagen HD adjuntas.
-            </div>
-          ) : (
-            <div>
-              <label style={labelStyleModal}>Sube tu diseño:</label>
-              <input 
-                type="file" 
-                accept="image/*"
-                required={!product?.rawFile}
-                onChange={(e) => {
-                  if (e.target.files && e.target.files[0]) {
-                    setImageFile(e.target.files[0]);
-                  }
+            return (
+              <button
+                key={item.id}
+                className="catalog-card-btn"
+                onClick={() => onSelectPlaymat(item)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  padding: "6px 8px",
+                  backgroundColor: "#09090b",
+                  border: "1px solid #27272a",
+                  borderRadius: "4px", // Esquinas rectangulares bien definidas
+                  cursor: "pointer",
+                  textAlign: "left",
+                  transition: "all 0.15s ease",
+                  width: "100%",
+                  boxSizing: "border-box"
                 }}
-                style={{ color: "#fff", fontSize: "0.9rem", marginTop: "4px" }} 
-              />
-            </div>
-          )}
+              >
+                {/* Preview Miniatura Horizontal (16:9 compacto) */}
+                <div
+                  style={{
+                    width: "60px",
+                    height: "34px",
+                    borderRadius: "2px",
+                    position: "relative",
+                    overflow: "hidden",
+                    flexShrink: 0,
+                    border: "1px solid #3f3f46"
+                  }}
+                >
+                  <img
+                    src={imageUrl}
+                    alt={item.name}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                  <img
+                    src={playmat1}
+                    alt="Base"
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: "100%",
+                      mixBlendMode: "multiply",
+                      pointerEvents: "none"
+                    }}
+                  />
+                </div>
 
-          <div>
-            <label style={labelStyleModal}>Nombre Completo</label>
-            <input type="text" required value={name} onChange={(e) => setName(e.target.value)} style={inputStyleModal} placeholder="Juan Pérez" />
+                {/* Texto del Botón */}
+                <span
+                  style={{
+                    color: "#f4f4f5",
+                    fontSize: "0.82rem",
+                    fontWeight: "500",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    flex: 1
+                  }}
+                >
+                  {item.name}
+                </span>
+
+                <span style={{ color: "#3b82f6", fontSize: "0.75rem", fontWeight: "bold" }}>
+                  Seleccionar
+                </span>
+              </button>
+            );
+          })
+        ) : (
+          <div style={{ textAlign: "center", padding: "15px", color: "#a1a1aa", fontSize: "0.8rem" }}>
+            Sin resultados.
           </div>
-
-          <div style={{ display: "flex", gap: "10px" }}>
-            <div style={{ flex: 1 }}>
-              <label style={labelStyleModal}>Correo</label>
-              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyleModal} placeholder="correo@example.com" />
-            </div>
-            <div style={{ flex: 1 }}>
-              <label style={labelStyleModal}>Teléfono / WhatsApp</label>
-              <input type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} style={inputStyleModal} placeholder="2291234567" />
-            </div>
-          </div>
-
-          <div>
-            <label style={labelStyleModal}>Dirección de Envío</label>
-            <input type="text" required value={address} onChange={(e) => setAddress(e.target.value)} style={inputStyleModal} placeholder="Calle y número" />
-          </div>
-
-          <div style={{ display: "flex", gap: "10px" }}>
-            <div style={{ flex: 1 }}>
-              <label style={labelStyleModal}>Ciudad</label>
-              <input type="text" required value={city} onChange={(e) => setCity(e.target.value)} style={inputStyleModal} placeholder="Veracruz" />
-            </div>
-            <div style={{ flex: 1 }}>
-              <label style={labelStyleModal}>C.P.</label>
-              <input type="text" required value={postalCode} onChange={(e) => setPostalCode(e.target.value)} style={inputStyleModal} placeholder="91700" />
-            </div>
-          </div>
-
-          <button type="submit" disabled={loading} style={payButtonStyleModal}>
-            {loading ? "Enviando captura y pedido..." : "Enviar Pedido 🚀"}
-          </button>
-        </form>
+        )}
       </div>
     </div>
   );
 }
-
-const modalOverlayStyleModal = { position: "fixed", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(0, 0, 0, 0.8)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000, padding: "20px" };
-const modalContentStyleModal = { backgroundColor: "#18181b", borderRadius: "16px", padding: "30px", width: "100%", maxWidth: "480px", border: "1px solid #27272a", boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.5)" };
-const summaryBoxStyleModal = { backgroundColor: "#09090b", padding: "14px", borderRadius: "8px", marginBottom: "20px", border: "1px solid #27272a" };
-const labelStyleModal = { display: "block", color: "#d4d4d8", fontSize: "0.85rem", marginBottom: "6px", fontWeight: "500" };
-const inputStyleModal = { width: "100%", padding: "10px 12px", backgroundColor: "#09090b", border: "1px solid #3f3f46", borderRadius: "8px", color: "#fff", fontSize: "0.95rem", outline: "none" };
-const payButtonStyleModal = { marginTop: "10px", width: "100%", padding: "12px", backgroundColor: "#16a34a", color: "#fff", border: "none", borderRadius: "8px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer" };
-const closeButtonStyleModal = { background: "transparent", border: "none", color: "#a1a1aa", fontSize: "1.2rem", cursor: "pointer" };

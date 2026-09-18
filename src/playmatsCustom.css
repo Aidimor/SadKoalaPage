@@ -11,7 +11,7 @@
   box-sizing: border-box;
   min-height: 70vh;
   user-select: none;
-  transform: translateY(75px);
+  transform: translateY(0px);
 }
 
 .playmat-preview-column {
@@ -33,7 +33,7 @@
   position: relative;
   background-color: #111;
   border-radius: 28px;
-  overflow: hidden;
+  overflow: hidden !important; /* Fuerza el recorte del contenido sobrante */
   margin-top: 10px;
   transition: width 0.3s ease, height 0.3s ease;
 }
@@ -56,6 +56,11 @@
   height: 100%;
   z-index: 1;
   cursor: grab;
+  overflow: hidden;
+  border-radius: 28px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .playmat-drag-area.dragging {
@@ -63,9 +68,12 @@
 }
 
 .playmat-custom-img {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover; /* Mantiene cobertura total sin vacíos */
   pointer-events: none;
 }
 
@@ -77,9 +85,10 @@
   height: 100%;
   z-index: 2;
   pointer-events: none;
+  object-fit: fill;
 }
 
-/* Resto de botones y estilos de tu panel */
+/* Resto de botones y estilos del panel */
 .playmat-controls-group {
   display: flex;
   flex-direction: column;
