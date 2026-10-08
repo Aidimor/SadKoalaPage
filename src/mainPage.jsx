@@ -7,8 +7,11 @@ import banner1 from "./assets/banner1.jpg";
 import banner2 from "./assets/banner2.jpg";
 import banner3 from "./assets/banner3.jpg";
 
-// Instancia de Supabase
-const supabase = createClient("https://wnezxpgkymojzotrzcmc.supabase.co", "sb_publishable_GWwMGvh0jiuJKxlV_EXnrA_q-yk3899");
+// Carga de variables de entorno mediante Vite
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 export default function MainView({ onGoHome, onGoMain, onGoPlaymats, onGoContact, onGoOrders, onGoCatalog, onSelectShirt }) {
   const slides = [

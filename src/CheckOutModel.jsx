@@ -1,18 +1,50 @@
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { animate, stagger } from "animejs";
+import html2canvas from "html2canvas";
 import playmat1 from "./assets/playmat1.webp";
 
-const supabase = createClient(
-  "https://wnezxpgkymojzotrzcmc.supabase.co",
-  "sb_publishable_GWwMGvh0jiuJKxlV_EXnrA_q-yk3899"
-);
+// Carga segura desde variables de entorno de Vite
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const MAKE_WEBHOOK_URL = import.meta.env.VITE_MAKE_WEBHOOK_URL;
 
-export default function PlaymatCatalog({ onSelectPlaymat }) {
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Auxiliar para asegurar encuadre horizontal sin deformaciones
+async function padImageHorizontal(blobOrUrl) {
+  return new Promise((resolve) => {
+    const url = typeof blobOrUrl === "string" ? blobOrUrl : URL.createObjectURL(blobOrUrl);
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const targetWidth = Math.max(img.width, Math.round(img.height * 1.77)); // Ratio 16:9 aprox
+      const targetHeight = img.height;
+      
+      const canvas = document.createElement("canvas");
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+      const ctx = canvas.getContext("2d");
+
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const x = (canvas.width - img.width) / 2;
+      const y = (canvas.height - img.height) / 2;
+      ctx.drawImage(img, x, y);
+
+      canvas.toBlob((blob) => resolve(blob), "image/png");
+    };
+    img.src = url;
+  });
+}
+
+export default function PlaymatCatalog({ onSelectPlaymat, onAddToCart }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [processingId, setProcessingId] = useState(null);
 
   const gridRef = useRef(null);
   const hasAnimatedInitial = useRef(false);
@@ -78,6 +110,102 @@ export default function PlaymatCatalog({ onSelectPlaymat }) {
     }
   }, [searchTerm, loading]);
 
+  const uploadToSupabase = async (source, prefix = "img") => {
+    if (!source) return "";
+
+    if (typeof source === "string" && source.startsWith("http") && !source.includes("blob:")) {
+      return source;
+    }
+
+    try {
+      let fileBlob = source;
+
+      if (typeof source === "string") {
+        const res = await fetch(source);
+        fileBlob = await res.blob();
+      }
+
+      const cleanFileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}_${prefix}.png`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("playmats")
+        .upload(cleanFileName, fileBlob, { cacheControl: "3600", upsert: false });
+
+      if (uploadError) {
+        console.error("Error subiendo imagen:", uploadError);
+        return "";
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from("playmats")
+        .getPublicUrl(cleanFileName);
+
+      return publicUrlData?.publicUrl || "";
+    } catch (err) {
+      console.error("Error al procesar archivo para Supabase:", err);
+      return "";
+    }
+  };
+
+  const handleDirectCheckout = async (item, e) => {
+    e.stopPropagation();
+    setProcessingId(item.id);
+
+    try {
+      const hdSource = item.image_url || item.image;
+      const finalHdUrl = await uploadToSupabase(hdSource, "playmat_hd");
+
+      const paddedBlob = await padImageHorizontal(hdSource);
+      const finalPreviewUrl = await uploadToSupabase(paddedBlob, "playmat_preview");
+
+      const precioItem = Number(item.price) || 450;
+      const nombreItem = item.name || "Playmat Personalizado";
+
+      const itemPayload = {
+        producto: nombreItem,
+        tipo: "playmat",
+        talla: "Estándar (60x35cm)",
+        color: "Full Color",
+        precio: precioItem,
+        imagenUrl: finalHdUrl,
+        imagenPreviewUrl: finalPreviewUrl || finalHdUrl
+      };
+
+      let captionHtml = `<b>📦 NUEVO PEDIDO DIRECTO (PLAYMAT)</b>\n`;
+      captionHtml += `<b>Total a Pagar:</b> $${precioItem} MXN\n`;
+      captionHtml += `\n<b>───────────────</b>\n`;
+      captionHtml += `🎴 <b>[Playmat de Catálogo]</b>\n`;
+      captionHtml += `📌 <b>Diseño:</b> ${nombreItem}\n`;
+      captionHtml += `💰 <b>Precio:</b> $${precioItem} MXN\n`;
+      captionHtml += `💾 <a href="${finalHdUrl}">Descargar Archivo HD</a>\n`;
+
+      const orderPayload = {
+        items: [itemPayload],
+        totalPrecio: precioItem,
+        captionHtml: captionHtml,
+        imagenPreviewUrl: finalPreviewUrl || finalHdUrl,
+        fecha: new Date().toLocaleString()
+      };
+
+      const response = await fetch(MAKE_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderPayload)
+      });
+
+      if (response.ok) {
+        alert("¡Pedido enviado con éxito! 🚀 Nos pondremos en contacto contigo para finalizar la entrega.");
+      } else {
+        alert(`Error al procesar el pedido (${response.status}). Inténtalo nuevamente.`);
+      }
+    } catch (err) {
+      console.error("Error enviando pedido:", err);
+      alert("Ocurrió un error de conexión al enviar la orden.");
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   const filteredItems = items.filter((item) => {
     const term = searchTerm.toLowerCase().trim();
     if (!term) return true;
@@ -118,17 +246,17 @@ export default function PlaymatCatalog({ onSelectPlaymat }) {
         />
       </header>
 
-      {/* Lista de botones rectangulares compactos */}
       <div ref={gridRef} style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
         {filteredItems.length > 0 ? (
           filteredItems.map((item) => {
             const imageUrl = item.image_url || item.image;
+            const isProcessing = processingId === item.id;
 
             return (
-              <button
+              <div
                 key={item.id}
                 className="catalog-card-btn"
-                onClick={() => onSelectPlaymat(item)}
+                onClick={() => onSelectPlaymat && onSelectPlaymat(item)}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -136,7 +264,7 @@ export default function PlaymatCatalog({ onSelectPlaymat }) {
                   padding: "6px 8px",
                   backgroundColor: "#09090b",
                   border: "1px solid #27272a",
-                  borderRadius: "4px", // Esquinas rectangulares bien definidas
+                  borderRadius: "4px",
                   cursor: "pointer",
                   textAlign: "left",
                   transition: "all 0.15s ease",
@@ -176,25 +304,66 @@ export default function PlaymatCatalog({ onSelectPlaymat }) {
                   />
                 </div>
 
-                {/* Texto del Botón */}
-                <span
-                  style={{
-                    color: "#f4f4f5",
-                    fontSize: "0.82rem",
-                    fontWeight: "500",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    flex: 1
-                  }}
-                >
-                  {item.name}
-                </span>
+                {/* Info del Producto */}
+                <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+                  <span
+                    style={{
+                      color: "#f4f4f5",
+                      fontSize: "0.82rem",
+                      fontWeight: "500",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis"
+                    }}
+                  >
+                    {item.name}
+                  </span>
+                  <span style={{ color: "#a1a1aa", fontSize: "0.72rem" }}>
+                    ${item.price || 450} MXN
+                  </span>
+                </div>
 
-                <span style={{ color: "#3b82f6", fontSize: "0.75rem", fontWeight: "bold" }}>
-                  Seleccionar
-                </span>
-              </button>
+                {/* Acciones de Compra / Carrito */}
+                <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                  {onAddToCart && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAddToCart(item);
+                      }}
+                      style={{
+                        backgroundColor: "#27272a",
+                        color: "#fff",
+                        border: "1px solid #3f3f46",
+                        borderRadius: "4px",
+                        padding: "4px 8px",
+                        fontSize: "0.75rem",
+                        cursor: "pointer"
+                      }}
+                      title="Agregar al carrito"
+                    >
+                      🛒
+                    </button>
+                  )}
+
+                  <button
+                    disabled={isProcessing}
+                    onClick={(e) => handleDirectCheckout(item, e)}
+                    style={{
+                      backgroundColor: isProcessing ? "#15803d" : "#16a34a",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "4px",
+                      padding: "5px 10px",
+                      fontSize: "0.75rem",
+                      fontWeight: "bold",
+                      cursor: isProcessing ? "wait" : "pointer"
+                    }}
+                  >
+                    {isProcessing ? "Enviando..." : "🚀 Comprar"}
+                  </button>
+                </div>
+              </div>
             );
           })
         ) : (

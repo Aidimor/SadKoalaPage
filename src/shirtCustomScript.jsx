@@ -1,10 +1,14 @@
 import { useState, useEffect, useRef } from "react";
-import { createClient } from "@supabase/supabase-js";
 import shirtMockUp from "./assets/shirt.webp";
 import shirtNoise from "./assets/noise.webp";
 import "./shirtCustomScript.css";
 
-const supabase = createClient("https://wnezxpgkymojzotrzcmc.supabase.co", "sb_publishable_GWwMGvh0jiuJKxlV_EXnrA_q-yk3899");
+import { createClient } from "@supabase/supabase-js";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 export default function ShirtCustom({ initialProduct, onBackToCatalog, onAddToCart }) {
   const [allShirts, setAllShirts] = useState(initialProduct ? [initialProduct] : []);

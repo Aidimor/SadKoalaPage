@@ -1,11 +1,15 @@
 import { useState, useEffect, useRef } from "react";
-import { createClient } from "@supabase/supabase-js";
 import { animate, stagger } from "animejs";
 import shirtMockUp from "./assets/shirt.webp";
 import shirtNoise from "./assets/noise.webp";
 import "./shirtCatalog.css";
 
-const supabase = createClient("https://wnezxpgkymojzotrzcmc.supabase.co", "sb_publishable_GWwMGvh0jiuJKxlV_EXnrA_q-yk3899");
+import { createClient } from "@supabase/supabase-js";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 export default function ShirtCatalog({ onSelectShirt, onClose }) {
   const [shirtModels, setShirtModels] = useState([]);

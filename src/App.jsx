@@ -9,9 +9,12 @@ import ShirtCustom from "./shirtCustomScript.jsx";
 import Playmat from "./playmatsCustom.jsx";
 import MainView from "./mainPage.jsx"; 
 
-const supabase = createClient("https://wnezxpgkymojzotrzcmc.supabase.co", "sb_publishable_GWwMGvh0jiuJKxlV_EXnrA_q-yk3899");
+// Carga desde el archivo .env.local
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const MAKE_WEBHOOK_URL = import.meta.env.VITE_MAKE_WEBHOOK_URL;
 
-const MAKE_WEBHOOK_URL = "https://hook.us2.make.com/1jtkkvp18vp5m5pjwz31ccvthp1kgtu7";
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Función auxiliar para mantener el formato vertical completo sin recortes
 async function padImageVertical(blobOrUrl) {
