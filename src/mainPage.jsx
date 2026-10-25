@@ -13,7 +13,15 @@ const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-export default function MainView({ onGoHome, onGoMain, onGoPlaymats, onGoContact, onGoOrders, onGoCatalog, onSelectShirt }) {
+export default function MainView({ 
+  onGoHome, 
+  onGoMain, 
+  onGoPlaymats, 
+  onGoContact, 
+  onGoOrders, 
+  onGoCatalog, 
+  onSelectShirt 
+}) {
   const slides = [
     {
       id: 1,
@@ -75,10 +83,10 @@ export default function MainView({ onGoHome, onGoMain, onGoPlaymats, onGoContact
   }, []);
 
   return (
-    <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
+    <div className="main-page-container">
       
       {/* 1. SECCIÓN DEL REEL / CARRUSEL */}
-      <div className="main-reel-container">
+      <section className="main-reel-container">
         {slides.map((slide, index) => (
           <div
             key={slide.id}
@@ -106,81 +114,54 @@ export default function MainView({ onGoHome, onGoMain, onGoPlaymats, onGoContact
             />
           ))}
         </div>
-      </div>
+      </section>
 
       {/* 2. SECCIÓN DE PLAYERAS MÁS VENDIDAS */}
-      <div style={{ width: "100%", maxWidth: "1200px", padding: "50px 20px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "25px" }}>
-          <div>
-            <p style={{ color: "#a1a1aa", fontSize: "0.95rem", marginTop: "5px" }}>
+      <section className="bestsellers-section">
+        <div className="bestsellers-header">
+          <div className="bestsellers-title-wrapper">
+            <h2 className="bestsellers-heading">Más Vendidas</h2>
+            <p className="bestsellers-subtitle">
               Los diseños favoritos de la comunidad listos para ti.
             </p>
           </div>
           <button 
+            className="bestsellers-see-all-btn"
             onClick={onGoCatalog || onGoHome}
-            style={{
-              backgroundColor: "transparent",
-              color: "#3b82f6",
-              border: "1px solid #3b82f6",
-              padding: "8px 16px",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontWeight: "600",
-              transition: "all 0.2s"
-            }}
           >
             Ver todo el catálogo →
           </button>
         </div>
 
         {loadingShirts ? (
-          <p style={{ color: "#71717a", textAlign: "center", padding: "40px" }}>Cargando favoritos...</p>
+          <p className="bestsellers-loading">Cargando favoritos...</p>
         ) : (
-          <div style={{ 
-            display: "grid", 
-            gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", 
-            gap: "20px" 
-          }}>
+          <div className="bestsellers-grid">
             {bestSellers.map((shirt) => (
               <div 
                 key={shirt.id}
+                className="bestseller-card"
                 onClick={() => onSelectShirt && onSelectShirt(shirt)}
-                style={{
-                  backgroundColor: "#18181b",
-                  borderRadius: "12px",
-                  overflow: "hidden",
-                  border: "1px solid #27272a",
-                  cursor: "pointer",
-                  transition: "transform 0.2s, border-color 0.2s"
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-4px)";
-                  e.currentTarget.style.borderColor = "#3f3f46";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.borderColor = "#27272a";
-                }}
               >
-                <div style={{ width: "100%", height: "280px", backgroundColor: "#09090b", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                <div className="bestseller-card-image-box">
                   <img 
                     src={shirt.image_url || shirt.image || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500&auto=format&fit=crop&q=80"} 
                     alt={shirt.name || "Playera"} 
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    className="bestseller-card-img"
                   />
                 </div>
-                <div style={{ padding: "16px" }}>
-                  <h3 style={{ color: "#fff", fontSize: "1rem", fontWeight: "600", marginBottom: "6px" }}>
+                <div className="bestseller-card-info">
+                  <h3 className="bestseller-card-title">
                     {shirt.name || "Playera Personalizada"}
                   </h3>
-                  <p style={{ color: "#71717a", fontSize: "0.85rem", marginBottom: "12px" }}>
+                  <p className="bestseller-card-category">
                     {shirt.category || "Edición Especial"}
                   </p>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ color: "#3b82f6", fontWeight: "bold", fontSize: "1.1rem" }}>
+                  <div className="bestseller-card-footer">
+                    <span className="bestseller-card-price">
                       ${shirt.price || "350"} MXN
                     </span>
-                    <span style={{ fontSize: "0.85rem", color: "#a1a1aa", backgroundColor: "#27272a", padding: "4px 8px", borderRadius: "4px" }}>
+                    <span className="bestseller-card-badge">
                       Personalizar ⚡
                     </span>
                   </div>
@@ -189,7 +170,7 @@ export default function MainView({ onGoHome, onGoMain, onGoPlaymats, onGoContact
             ))}
           </div>
         )}
-      </div>
+      </section>
 
     </div>
   );

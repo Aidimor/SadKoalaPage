@@ -6,7 +6,6 @@
   background-color: #111;
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-
 }
 
 .reel-slide {
@@ -31,10 +30,16 @@
 .reel-overlay {
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, rgba(10, 10, 15, 0.9) 0%, rgba(10, 10, 15, 0.4) 60%, transparent 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(10, 10, 15, 0.9) 0%,
+    rgba(10, 10, 15, 0.4) 60%,
+    transparent 100%
+  );
   display: flex;
   align-items: center;
   padding: 0 5%;
+  box-sizing: border-box;
 }
 
 .reel-content {
@@ -96,4 +101,99 @@
 .dot.active-dot {
   background-color: #007bff;
   transform: scale(1.2);
+}
+
+/* =========================================
+   ADAPTACIÓN PARA MOBILE / TABLET
+========================================= */
+@media (max-width: 768px) {
+  .main-reel-container {
+    height: 260px;
+    border-radius: 8px;
+  }
+
+  .reel-overlay {
+    padding: 0 6%;
+    /* En pantallas medianas oscurece más para mejorar lectura */
+    background: linear-gradient(
+      90deg,
+      rgba(10, 10, 15, 0.95) 0%,
+      rgba(10, 10, 15, 0.7) 70%,
+      rgba(10, 10, 15, 0.3) 100%
+    );
+  }
+
+  .reel-content h1 {
+    font-size: 1.75rem;
+    margin-bottom: 8px;
+  }
+
+  .reel-content p {
+    font-size: 0.95rem;
+    margin-bottom: 16px;
+  }
+
+  .reel-btn {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+
+  .reel-dots {
+    bottom: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-reel-container {
+    height: 240px;
+    border-radius: 6px;
+  }
+
+  .reel-overlay {
+    padding: 0 16px;
+    background: linear-gradient(
+      180deg,
+      rgba(10, 10, 15, 0.3) 0%,
+      rgba(10, 10, 15, 0.85) 60%,
+      rgba(10, 10, 15, 0.98) 100%
+    );
+    align-items: flex-end;
+    padding-bottom: 35px;
+  }
+
+  .reel-content {
+    max-width: 100%;
+  }
+
+  .reel-content h1 {
+    font-size: 1.3rem;
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+
+  .reel-content p {
+    font-size: 0.82rem;
+    margin-bottom: 12px;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .reel-btn {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    border-radius: 6px;
+  }
+
+  .reel-dots {
+    bottom: 10px;
+    gap: 6px;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+  }
 }

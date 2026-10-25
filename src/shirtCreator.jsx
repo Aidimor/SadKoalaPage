@@ -19,7 +19,7 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
   const [catalogError, setCatalogError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Zona activa actual ("chest" | "abdomen")
+  // Zona activa actual ("chest" | "abdomen" | null)
   const [activeZoneTarget, setActiveZoneTarget] = useState("chest");
 
   // Estado del Estampado 1 (Pecho)
@@ -27,7 +27,7 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
   const [pos1, setPos1] = useState({ x: 0, y: 0 });
   const [scale1, setScale1] = useState(1);
   const [tintColor1, setTintColor1] = useState("#ffffff");
-  const [applyTint1, setApplyTint1] = useState(false); // Alterna entre color original y máscara de color
+  const [applyTint1, setApplyTint1] = useState(false);
   const [isDragging1, setIsDragging1] = useState(false);
   const dragStart1 = useRef({ x: 0, y: 0 });
   const hasMoved1 = useRef(false);
@@ -56,10 +56,8 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
     { name: "Yellow", hex: "#eab308" },
   ];
 
-  // Paleta rápida de colores para el estampado
   const tintPresets = ["#ffffff", "#000000", "#ef4444", "#3b82f6", "#22c55e", "#eab308", "#ec4899", "#8b5cf6"];
 
-  // Carga inicial del catálogo desde Supabase
   useEffect(() => {
     async function loadShirts() {
       try {
@@ -80,7 +78,7 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
     loadShirts();
   }, []);
 
-  // Bloqueo estricto del scroll de la página al usar la rueda del mouse para hacer zoom
+  // Bloqueo del scroll durante zoom con rueda de mouse
   useEffect(() => {
     const el1 = zoneRef1.current;
     const el2 = zoneRef2.current;
@@ -112,28 +110,35 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
     };
   }, []);
 
-  // Listener global para soltar el mouse
+  // Listener global de soltado (mouse y touch)
   useEffect(() => {
-    const handleGlobalMouseUp = () => {
+    const handleGlobalRelease = () => {
       setIsDragging1(false);
       setIsDragging2(false);
     };
 
-    window.addEventListener("mouseup", handleGlobalMouseUp);
-    return () => window.removeEventListener("mouseup", handleGlobalMouseUp);
+    window.addEventListener("mouseup", handleGlobalRelease);
+    window.addEventListener("touchend", handleGlobalRelease);
+    return () => {
+      window.removeEventListener("mouseup", handleGlobalRelease);
+      window.removeEventListener("touchend", handleGlobalRelease);
+    };
   }, []);
 
-  // Aplicar arte seleccionado del catálogo lateral
   const handleSelectCatalogShirt = (item) => {
     const artUrl = item.image || item.image_url;
     if (!artUrl) return;
 
-    if (activeZoneTarget === "chest") {
+    // Si ninguna zona está activa, por defecto aplica al pecho
+    const target = activeZoneTarget === "abdomen" ? "abdomen" : "chest";
+    if (target === "chest") {
+      setActiveZoneTarget("chest");
       setImage1(artUrl);
       setPos1({ x: 0, y: 0 });
       setScale1(1);
       setApplyTint1(false);
     } else {
+      setActiveZoneTarget("abdomen");
       setImage2(artUrl);
       setPos2({ x: 0, y: 0 });
       setScale2(1);
@@ -141,7 +146,6 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
     }
   };
 
-  // Carga de imágenes locales
   const handleUpload1 = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -162,63 +166,50 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
     }
   };
 
-  // Arrastre Pecho
-  const handleMouseDown1 = (e) => {
-    e.stopPropagation();
+  // Drag Pecho (Mouse + Touch)
+  const handleStartDrag1 = (clientX, clientY) => {
     setActiveZoneTarget("chest");
     hasMoved1.current = false;
     if (image1) {
       setIsDragging1(true);
       dragStart1.current = {
-        x: e.clientX - pos1.x,
-        y: e.clientY - pos1.y,
+        x: clientX - pos1.x,
+        y: clientY - pos1.y,
       };
     }
   };
 
-  const handleMouseMove1 = (e) => {
+  const handleMoveDrag1 = (clientX, clientY) => {
     if (!isDragging1) return;
-    e.preventDefault();
     hasMoved1.current = true;
     setPos1({
-      x: e.clientX - dragStart1.current.x,
-      y: e.clientY - dragStart1.current.y,
+      x: clientX - dragStart1.current.x,
+      y: clientY - dragStart1.current.y,
     });
   };
 
-  const handleMouseUp1 = () => {
-    setIsDragging1(false);
-  };
-
-  // Arrastre Abdomen
-  const handleMouseDown2 = (e) => {
-    e.stopPropagation();
+  // Drag Abdomen (Mouse + Touch)
+  const handleStartDrag2 = (clientX, clientY) => {
     setActiveZoneTarget("abdomen");
     hasMoved2.current = false;
     if (image2) {
       setIsDragging2(true);
       dragStart2.current = {
-        x: e.clientX - pos2.x,
-        y: e.clientY - pos2.y,
+        x: clientX - pos2.x,
+        y: clientY - pos2.y,
       };
     }
   };
 
-  const handleMouseMove2 = (e) => {
+  const handleMoveDrag2 = (clientX, clientY) => {
     if (!isDragging2) return;
-    e.preventDefault();
     hasMoved2.current = true;
     setPos2({
-      x: e.clientX - dragStart2.current.x,
-      y: e.clientY - dragStart2.current.y,
+      x: clientX - dragStart2.current.x,
+      y: clientY - dragStart2.current.y,
     });
   };
 
-  const handleMouseUp2 = () => {
-    setIsDragging2(false);
-  };
-
-  // Reseteo de la zona activa
   const handleResetActiveDesign = () => {
     if (activeZoneTarget === "chest") {
       setImage1(null);
@@ -227,7 +218,7 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
       setApplyTint1(false);
       setTintColor1("#ffffff");
       if (fileInputRef1.current) fileInputRef1.current.value = "";
-    } else {
+    } else if (activeZoneTarget === "abdomen") {
       setImage2(null);
       setPos2({ x: 0, y: 0 });
       setScale2(1);
@@ -275,20 +266,20 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
   });
 
   const isBlackShirt = shirtColor === "#18181b" || shirtColor === "#000000";
-  const hasActiveImage = activeZoneTarget === "chest" ? !!image1 : !!image2;
+  const hasActiveImage = activeZoneTarget === "chest" ? !!image1 : activeZoneTarget === "abdomen" ? !!image2 : false;
   const currentApplyTint = activeZoneTarget === "chest" ? applyTint1 : applyTint2;
   const currentTintColor = activeZoneTarget === "chest" ? tintColor1 : tintColor2;
 
   const handleToggleTint = (enabled) => {
     if (activeZoneTarget === "chest") setApplyTint1(enabled);
-    else setApplyTint2(enabled);
+    else if (activeZoneTarget === "abdomen") setApplyTint2(enabled);
   };
 
   const handleUpdateTintColor = (newColor) => {
     if (activeZoneTarget === "chest") {
       setTintColor1(newColor);
       setApplyTint1(true);
-    } else {
+    } else if (activeZoneTarget === "abdomen") {
       setTintColor2(newColor);
       setApplyTint2(true);
     }
@@ -311,67 +302,12 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
         className="customizer-hidden-input"
       />
 
-      {/* 1. SIDEBAR IZQUIERDO: CATÁLOGO SUPABASE */}
-      <aside className="customizer-sidebar">
-        <h3 className="sidebar-title">Catálogo de Playeras</h3>
-
-        <div className="search-box">
-          <span className="search-icon">🔍</span>
-          <input
-            type="text"
-            placeholder="Buscar arte o etiqueta..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="search-input"
-          />
-        </div>
-
-        <div className="target-zone-selector">
-          <span className="target-zone-label">Poner arte en:</span>
-          <div className="target-btn-group">
-            <button
-              onClick={() => setActiveZoneTarget("chest")}
-              className={`target-btn ${activeZoneTarget === "chest" ? "active" : ""}`}
-            >
-              Pecho
-            </button>
-            <button
-              onClick={() => setActiveZoneTarget("abdomen")}
-              className={`target-btn ${activeZoneTarget === "abdomen" ? "active" : ""}`}
-            >
-              Abdomen
-            </button>
-          </div>
-        </div>
-
-        <div className="catalog-items-list">
-          {loadingCatalog && <div className="catalog-status">Cargando catálogo...</div>}
-          {catalogError && <div className="catalog-status error">{catalogError}</div>}
-          {!loadingCatalog && !catalogError && filteredShirts.length === 0 && (
-            <div className="catalog-status">No se encontraron diseños.</div>
-          )}
-
-          {!loadingCatalog &&
-            filteredShirts.map((item) => {
-              const artUrl = item.image || item.image_url;
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => handleSelectCatalogShirt(item)}
-                  className="catalog-item-card"
-                >
-                  <img src={artUrl} alt={item.name} className="catalog-thumb" />
-                  <span className="catalog-item-name">{item.name}</span>
-                </div>
-              );
-            })}
-        </div>
-      </aside>
-
-      {/* 2. ÁREA CENTRAL: PLAYERA */}
+      {/* ÁREA CENTRAL: PLAYERA */}
       <main className="customizer-center-content">
-        <div className="shirt-stage">
-          {/* Capa Color Base */}
+        <div 
+          className="shirt-stage"
+          onClick={() => setActiveZoneTarget(null)} /* Deselecciona ambas zonas al tocar fuera */
+        >
           <div
             className="shirt-base-color"
             style={{
@@ -381,7 +317,6 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
             }}
           />
 
-          {/* Capa Ruido Textil */}
           <div
             className="shirt-noise-layer"
             style={{
@@ -392,12 +327,32 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
             }}
           />
 
-          {/* CUADRO 1: Pecho */}
+          {/* ZONA 1: Pecho */}
           <div
             ref={zoneRef1}
-            onMouseDown={handleMouseDown1}
-            onMouseMove={handleMouseMove1}
-            onMouseUp={handleMouseUp1}
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveZoneTarget("chest");
+            }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              handleStartDrag1(e.clientX, e.clientY);
+            }}
+            onMouseMove={(e) => {
+              e.preventDefault();
+              handleMoveDrag1(e.clientX, e.clientY);
+            }}
+            onMouseUp={() => setIsDragging1(false)}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+              const touch = e.touches[0];
+              handleStartDrag1(touch.clientX, touch.clientY);
+            }}
+            onTouchMove={(e) => {
+              const touch = e.touches[0];
+              handleMoveDrag1(touch.clientX, touch.clientY);
+            }}
+            onTouchEnd={() => setIsDragging1(false)}
             className={`design-zone design-zone-chest ${image1 ? "zone-has-image" : "zone-empty"} ${
               activeZoneTarget === "chest" ? "zone-active-target" : ""
             }`}
@@ -407,7 +362,6 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
           >
             {image1 ? (
               applyTint1 ? (
-                /* Capa sólida teñida recortada con la silueta del diseño (Mask) */
                 <div
                   className="design-stamp-mask"
                   style={{
@@ -418,7 +372,6 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
                   }}
                 />
               ) : (
-                /* Imagen original sin alterar */
                 <img
                   src={image1}
                   alt="Diseño Pecho"
@@ -442,17 +395,36 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
                 >
                   📁 Subir Imagen
                 </button>
-                <span className="zone-placeholder-text">Pecho</span>
               </div>
             )}
           </div>
 
-          {/* CUADRO 2: Abdomen */}
+          {/* ZONA 2: Abdomen */}
           <div
             ref={zoneRef2}
-            onMouseDown={handleMouseDown2}
-            onMouseMove={handleMouseMove2}
-            onMouseUp={handleMouseUp2}
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveZoneTarget("abdomen");
+            }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              handleStartDrag2(e.clientX, e.clientY);
+            }}
+            onMouseMove={(e) => {
+              e.preventDefault();
+              handleMoveDrag2(e.clientX, e.clientY);
+            }}
+            onMouseUp={() => setIsDragging2(false)}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+              const touch = e.touches[0];
+              handleStartDrag2(touch.clientX, touch.clientY);
+            }}
+            onTouchMove={(e) => {
+              const touch = e.touches[0];
+              handleMoveDrag2(touch.clientX, touch.clientY);
+            }}
+            onTouchEnd={() => setIsDragging2(false)}
             className={`design-zone design-zone-abdomen ${image2 ? "zone-has-image" : "zone-empty"} ${
               activeZoneTarget === "abdomen" ? "zone-active-target" : ""
             }`}
@@ -495,72 +467,44 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
                 >
                   📁 Subir Imagen
                 </button>
-                <span className="zone-placeholder-text">Abdomen</span>
               </div>
             )}
           </div>
 
-          {/* Capa de Sombras */}
           <img src={shirtMockUp} alt="Playera Sombras" className="shirt-shadows" />
         </div>
       </main>
 
-      {/* 3. COLUMNA DERECHA: BOTONES Y CONFIGURACIÓN */}
+      {/* COLUMNA DE BOTONES / CONTROLES */}
       <aside className="customizer-action-sidebar">
-        <button
-          onClick={() =>
-            activeZoneTarget === "chest"
-              ? fileInputRef1.current?.click()
-              : fileInputRef2.current?.click()
-          }
-          className="action-btn upload-custom-btn"
-        >
-          📁 Subir en {activeZoneTarget === "chest" ? "Pecho" : "Abdomen"} ⚡
-        </button>
-
-        {/* PANEL: CAPA DE COLOR DEL ESTAMPADO */}
+        {/* Solo las bolitas de color en fila limpia */}
         {hasActiveImage && (
           <div className="right-panel-box tint-layer-panel">
-            <div className="tint-header">
-              <span className="panel-box-label">
-                Color de Diseño ({activeZoneTarget === "chest" ? "Pecho" : "Abdomen"}):
-              </span>
+            <div className="tint-buttons-row">
               <button
                 type="button"
-                onClick={() => handleToggleTint(!currentApplyTint)}
-                className={`tint-toggle-pill ${currentApplyTint ? "active" : ""}`}
+                onClick={() => handleToggleTint(false)}
+                className={`tint-original-btn ${!currentApplyTint ? "active" : ""}`}
+                title="Diseño original"
               >
-                {currentApplyTint ? "Color Activo" : "Original"}
+                Original
               </button>
+
+              {tintPresets.map((hex) => (
+                <button
+                  key={hex}
+                  type="button"
+                  onClick={() => handleUpdateTintColor(hex)}
+                  className={`tint-preset-dot ${
+                    currentApplyTint && currentTintColor.toLowerCase() === hex.toLowerCase()
+                      ? "selected"
+                      : ""
+                  }`}
+                  style={{ backgroundColor: hex }}
+                  title={hex}
+                />
+              ))}
             </div>
-
-            {currentApplyTint && (
-              <div className="tint-controls-wrapper">
-                <div className="tint-custom-row">
-                  <input
-                    type="color"
-                    value={currentTintColor}
-                    onChange={(e) => handleUpdateTintColor(e.target.value)}
-                    className="tint-color-picker"
-                    title="Elegir color libre"
-                  />
-                  <span className="tint-color-hex">{currentTintColor.toUpperCase()}</span>
-                </div>
-
-                <div className="tint-presets-group">
-                  {tintPresets.map((hex) => (
-                    <button
-                      key={hex}
-                      type="button"
-                      onClick={() => handleUpdateTintColor(hex)}
-                      className={`tint-preset-dot ${currentTintColor.toLowerCase() === hex ? "selected" : ""}`}
-                      style={{ backgroundColor: hex }}
-                      title={hex}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         )}
 
@@ -596,7 +540,7 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
           </div>
         </div>
 
-        {/* Botón de Reset para la zona activa */}
+        {/* Reset */}
         {hasActiveImage && (
           <button onClick={handleResetActiveDesign} className="action-btn reset-designs-btn">
             Limpiar {activeZoneTarget === "chest" ? "Pecho" : "Abdomen"} 🔄
@@ -607,12 +551,45 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
         <button onClick={handleAddToCart} className="action-btn add-to-cart-btn">
           Agregar Playera al Carrito 🛒
         </button>
+      </aside>
 
-        {onBackToCatalog && (
-          <button onClick={onBackToCatalog} className="back-catalog-btn">
-            ← Regresar al Menú Principal
-          </button>
-        )}
+      {/* SIDEBAR: CATÁLOGO SUPABASE */}
+      <aside className="customizer-sidebar">      
+
+        <div className="search-box">
+          <span className="search-icon">🔍</span>
+          <input
+            type="text"
+            placeholder="Buscar arte o etiqueta..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="search-input"
+          />
+        </div>
+
+   
+
+        <div className="catalog-items-list">
+          {loadingCatalog && <div className="catalog-status">Cargando catálogo...</div>}
+          {catalogError && <div className="catalog-status error">{catalogError}</div>}
+          {!loadingCatalog && !catalogError && filteredShirts.length === 0 && (
+            <div className="catalog-status">No se encontraron diseños.</div>
+          )}
+
+          {!loadingCatalog &&
+            filteredShirts.map((item) => {
+              const artUrl = item.image || item.image_url;
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => handleSelectCatalogShirt(item)}
+                  className="catalog-item-card"
+                >
+                  <img src={artUrl} alt={item.name} className="catalog-thumb" />
+                </div>
+              );
+            })}
+        </div>
       </aside>
     </div>
   );
