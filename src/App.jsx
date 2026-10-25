@@ -6,6 +6,7 @@ import './App.css';
 import Nav from "./navMain.jsx";
 import ShirtCatalog from "./shirtCatalog.jsx";
 import ShirtCustom from "./shirtCustomScript.jsx";
+import ShirtCreator from "./shirtCreator.jsx"; // Creador interactivo desde cero
 import Playmat from "./playmatsCustom.jsx";
 import MainView from "./mainPage.jsx"; 
 
@@ -257,6 +258,7 @@ export default function App() {
         onGoHome={() => handleNavChange("catalog")}
         onGoMain={() => handleNavChange("main")}
         onGoPlaymats={() => handleNavChange("playmats")}
+        onGoShirtCreator={() => handleNavChange("shirtCreator")}
         onGoContact={() => handleNavChange("contact")}
         onGoOrders={() => handleNavChange("orders")}
       />
@@ -282,10 +284,19 @@ export default function App() {
           />
         )}
 
+        {/* Vista del Creador de Playeras */}
+        {currentView === "shirtCreator" && (
+          <ShirtCreator 
+            onBackToCatalog={() => handleNavChange("catalog")}
+            onAddToCart={handleAddToCart}
+          />
+        )}
+
         {currentView === "main" && (
           <MainView 
             onGoCatalog={() => handleNavChange("catalog")} 
             onGoPlaymats={() => handleNavChange("playmats")} 
+            onGoShirtCreator={() => handleNavChange("shirtCreator")}
             onGoHome={() => handleNavChange("catalog")}
             onSelectShirt={(product) => {
               setSelectedProduct(product);

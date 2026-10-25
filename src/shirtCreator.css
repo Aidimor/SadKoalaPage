@@ -1,0 +1,573 @@
+/* Layout Principal Horizontal en 3 Columnas */
+.customizer-page-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: calc(100vh - 70px);
+  padding: 10px 30px;
+  box-sizing: border-box;
+  gap: 20px;
+}
+
+.customizer-hidden-input {
+  display: none;
+}
+
+/* =========================================
+   1. COLUMNA IZQUIERDA: CATÁLOGO SUPABASE
+========================================= */
+.customizer-sidebar {
+  width: 270px;
+  min-width: 270px;
+  background-color: #111113;
+  border: 1px solid #27272a;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 10;
+}
+
+.sidebar-title {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  text-align: center;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background-color: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 8px;
+  padding: 7px 10px;
+  margin-bottom: 12px;
+}
+
+.search-icon {
+  font-size: 12px;
+  margin-right: 6px;
+  opacity: 0.7;
+}
+
+.search-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 12px;
+  width: 100%;
+}
+
+.search-input::placeholder {
+  color: #71717a;
+}
+
+.target-zone-selector {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.target-zone-label {
+  font-size: 11px;
+  color: #a1a1aa;
+}
+
+.target-btn-group {
+  display: flex;
+  gap: 6px;
+}
+
+.target-btn {
+  background-color: #1e1e24;
+  border: 1px solid #3f3f46;
+  color: #a1a1aa;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.target-btn.active {
+  background-color: #2563eb;
+  border-color: #3b82f6;
+  color: #ffffff;
+}
+
+.catalog-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 480px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.catalog-items-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.catalog-items-list::-webkit-scrollbar-thumb {
+  background-color: #27272a;
+  border-radius: 4px;
+}
+
+.catalog-item-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.catalog-item-card:hover {
+  background-color: #27272a;
+  border-color: #3f3f46;
+  transform: translateX(3px);
+}
+
+.catalog-thumb {
+  width: 40px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.catalog-item-name {
+  color: #e4e4e7;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.catalog-status {
+  text-align: center;
+  color: #71717a;
+  font-size: 12px;
+  padding: 20px 0;
+}
+
+.catalog-status.error {
+  color: #ef4444;
+}
+
+/* =========================================
+   2. COLUMNA CENTRAL: PLAYERA (CENTRADO Y SUBIDO)
+========================================= */
+.customizer-center-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 600px;
+  position: relative;
+  overflow: visible;
+}
+
+.shirt-stage {
+  position: relative;
+  width: 500px;
+  height: 600px;
+  margin: 0 auto;
+  top: 50%;
+  left: 50%;
+  transform: translate(-120%, -55%) scale(1.95);
+  user-select: none;
+}
+
+.shirt-base-color {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  z-index: 1;
+}
+
+.shirt-noise-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  z-index: 2;
+  opacity: 0.6;
+}
+
+.design-zone {
+  position: absolute;
+  transform: translateX(-50%);
+  z-index: 3;
+  border: 0px dashed rgba(255, 255, 255, 0.45);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-drag: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.design-zone-chest {
+  top: 190px;
+  left: 29%;
+  width: 150px;
+  height: 290px;
+}
+
+.design-zone-abdomen {
+  top: 140px;
+  left: 71%;
+  width: 150px;
+  height: 310px;
+}
+
+.design-zone.zone-active-target {
+  border-color: #3b82f6;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+}
+
+.zone-empty {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.zone-has-image {
+  background-color: transparent;
+}
+
+/* Contenedor y botón interior de subida */
+.zone-empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  width: 100%;
+}
+
+.zone-upload-btn {
+  background-color: #1f1f23;
+  color: #ffffff;
+  border: 1px solid #3f3f46;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  transform: translateY(140px);
+}
+
+.zone-upload-btn:hover {
+  background-color: #27272a;
+  border-color: #3b82f6;
+  transform: translateY(140px) scale(1.03);
+}
+
+.zone-placeholder-text {
+  color: #a1a1aa;
+  font-size: 11px;
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* 1. Elemento cuando es imagen original */
+.design-stamp-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none !important;
+  user-select: none !important;
+  -webkit-user-drag: none !important;
+}
+
+/* 2. Elemento cuando actúa como capa de color teñida (Mask) */
+.design-stamp-mask {
+  width: 100%;
+  height: 100%;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  pointer-events: none !important;
+  user-select: none !important;
+  transition: background-color 0.1s ease;
+}
+
+.shirt-shadows {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  z-index: 4;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+
+/* =========================================
+   3. COLUMNA DERECHA: BOTONES Y ACCIONES
+========================================= */
+.customizer-action-sidebar {
+  width: 260px;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  z-index: 10;
+}
+
+.action-btn {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.1s ease, background-color 0.15s ease;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+}
+
+.upload-custom-btn {
+  background-color: #16a34a;
+  color: #ffffff;
+}
+
+.upload-custom-btn:hover {
+  background-color: #15803d;
+}
+
+.right-panel-box {
+  background-color: #111113;
+  border: 1px solid #27272a;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.panel-box-label {
+  color: #a1a1aa;
+  font-size: 12px;
+  margin: 0;
+}
+
+/* Panel de Capa de Color / Tinte */
+.tint-layer-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tint-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tint-toggle-pill {
+  background-color: #1f1f23;
+  border: 1px solid #3f3f46;
+  color: #a1a1aa;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tint-toggle-pill.active {
+  background-color: #2563eb;
+  border-color: #3b82f6;
+  color: #ffffff;
+}
+
+.tint-controls-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tint-custom-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tint-color-picker {
+  -webkit-appearance: none;
+  appearance: none;
+  border: none;
+  width: 32px;
+  height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  background: transparent;
+  padding: 0;
+}
+
+.tint-color-picker::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.tint-color-picker::-webkit-color-swatch {
+  border: 1px solid #3f3f46;
+  border-radius: 4px;
+}
+
+.tint-color-hex {
+  color: #d4d4d8;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.tint-presets-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tint-preset-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: 1px solid #3f3f46;
+  cursor: pointer;
+  transition: transform 0.1s ease, border-color 0.15s ease;
+}
+
+.tint-preset-dot:hover {
+  transform: scale(1.15);
+}
+
+.tint-preset-dot.selected {
+  border-color: #ffffff;
+  outline: 2px solid #3b82f6;
+}
+
+/* Selector de Color de Playera */
+.color-selector {
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.color-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #3f3f46;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.color-btn:hover {
+  transform: scale(1.1);
+}
+
+.color-btn.selected {
+  border-color: #ffffff;
+  outline: 2px solid #3b82f6;
+}
+
+/* Selector de Tallas */
+.size-buttons-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.size-btn {
+  padding: 6px 12px;
+  background-color: #1f1f23;
+  color: #ffffff;
+  border: 1px solid #3f3f46;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background-color 0.15s ease;
+}
+
+.size-btn:hover {
+  background-color: #2e2e36;
+}
+
+.size-btn.active {
+  background-color: #2563eb;
+  border-color: #3b82f6;
+}
+
+/* Botones de Acción Finales */
+.reset-designs-btn {
+  background-color: #27272a;
+  color: #f87171;
+  border: 1px solid #7f1d1d;
+  font-size: 13px;
+}
+
+.reset-designs-btn:hover {
+  background-color: #3f3f46;
+  border-color: #ef4444;
+}
+
+.add-to-cart-btn {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.add-to-cart-btn:hover {
+  background-color: #1d4ed8;
+}
+
+.back-catalog-btn {
+  background: none;
+  border: none;
+  color: #71717a;
+  cursor: pointer;
+  font-size: 12px;
+  text-align: center;
+  transition: color 0.15s ease;
+}
+
+.back-catalog-btn:hover {
+  color: #ffffff;
+}

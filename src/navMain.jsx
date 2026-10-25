@@ -2,7 +2,14 @@ import { useEffect, useRef } from 'react';
 import { animate, stagger } from 'animejs';
 import "./navMain.css";
 
-export default function NavMain({ onGoHome, onGoMain, onGoPlaymats, onGoContact, onGoOrders }) {
+export default function NavMain({ 
+  onGoHome, 
+  onGoMain, 
+  onGoPlaymats, 
+  onGoShirtCreator, 
+  onGoContact, 
+  onGoOrders 
+}) {
   const navRef = useRef(null);
 
   useEffect(() => {
@@ -43,10 +50,13 @@ export default function NavMain({ onGoHome, onGoMain, onGoPlaymats, onGoContact,
         <button className="nav-link" onClick={onGoHome}>
           Playeras
         </button>
+        <button className="nav-link" onClick={onGoShirtCreator}>
+          Crea tu Playera
+        </button>
         <button className="nav-link" onClick={onGoPlaymats}>
           Playmats
         </button>
-  {/*       <button className="nav-link" onClick={onGoContact}>
+        {/* <button className="nav-link" onClick={onGoContact}>
           Contacto
         </button> */}
         <button className="nav-link nav-btn-order" onClick={onGoOrders}>
