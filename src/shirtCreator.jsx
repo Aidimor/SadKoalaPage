@@ -78,7 +78,20 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
     loadShirts();
   }, []);
 
-  // Bloqueo del scroll durante zoom con rueda de mouse
+  // Bloqueo total de scroll por rueda en la ventana
+  useEffect(() => {
+    const preventWindowScroll = (e) => {
+      if (e.target.closest(".catalog-items-list")) return;
+      e.preventDefault();
+    };
+
+    window.addEventListener("wheel", preventWindowScroll, { passive: false });
+    return () => {
+      window.removeEventListener("wheel", preventWindowScroll);
+    };
+  }, []);
+
+  // Zoom de las zonas de diseño
   useEffect(() => {
     const el1 = zoneRef1.current;
     const el2 = zoneRef2.current;
@@ -110,7 +123,7 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
     };
   }, []);
 
-  // Listener global de soltado (mouse y touch)
+  // Listener global de soltado
   useEffect(() => {
     const handleGlobalRelease = () => {
       setIsDragging1(false);
@@ -129,7 +142,6 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
     const artUrl = item.image || item.image_url;
     if (!artUrl) return;
 
-    // Si ninguna zona está activa, por defecto aplica al pecho
     const target = activeZoneTarget === "abdomen" ? "abdomen" : "chest";
     if (target === "chest") {
       setActiveZoneTarget("chest");
@@ -306,7 +318,7 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
       <main className="customizer-center-content">
         <div 
           className="shirt-stage"
-          onClick={() => setActiveZoneTarget(null)} /* Deselecciona ambas zonas al tocar fuera */
+          onClick={() => setActiveZoneTarget(null)}
         >
           <div
             className="shirt-base-color"
@@ -477,9 +489,13 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
 
       {/* COLUMNA DE BOTONES / CONTROLES */}
       <aside className="customizer-action-sidebar">
-        {/* Solo las bolitas de color en fila limpia */}
+        {/* Barra de colores */}
         {hasActiveImage && (
-          <div className="right-panel-box tint-layer-panel">
+          <div
+            className={`right-panel-box tint-layer-panel ${
+              activeZoneTarget === "abdomen" ? "tint-pos-abdomen" : "tint-pos-chest"
+            }`}
+          >
             <div className="tint-buttons-row">
               <button
                 type="button"
@@ -506,6 +522,18 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
               ))}
             </div>
           </div>
+        )}
+
+        {/* Botón Reset */}
+        {hasActiveImage && (
+          <button
+            onClick={handleResetActiveDesign}
+            className={`action-btn reset-designs-btn ${
+              activeZoneTarget === "abdomen" ? "tint-pos-abdomen" : "tint-pos-chest"
+            }`}
+          >
+            Limpiar {activeZoneTarget === "chest" ? "Pecho" : "Abdomen"} 🔄
+          </button>
         )}
 
         {/* Selector de Color de Playera */}
@@ -540,13 +568,6 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
           </div>
         </div>
 
-        {/* Reset */}
-        {hasActiveImage && (
-          <button onClick={handleResetActiveDesign} className="action-btn reset-designs-btn">
-            Limpiar {activeZoneTarget === "chest" ? "Pecho" : "Abdomen"} 🔄
-          </button>
-        )}
-
         {/* Agregar al Carrito */}
         <button onClick={handleAddToCart} className="action-btn add-to-cart-btn">
           Agregar Playera al Carrito 🛒
@@ -555,7 +576,6 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
 
       {/* SIDEBAR: CATÁLOGO SUPABASE */}
       <aside className="customizer-sidebar">      
-
         <div className="search-box">
           <span className="search-icon">🔍</span>
           <input
@@ -566,8 +586,6 @@ export default function ShirtCreator({ onBackToCatalog, onAddToCart }) {
             className="search-input"
           />
         </div>
-
-   
 
         <div className="catalog-items-list">
           {loadingCatalog && <div className="catalog-status">Cargando catálogo...</div>}

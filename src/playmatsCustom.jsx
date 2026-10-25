@@ -16,9 +16,10 @@ export default function Playmat({ onAddToCart }) {
   const [scale, setScale] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const dragStart = useRef({ x: 0, y: 0 });
 
   const previewRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const handleSelectFromCatalog = (item) => {
     const imageUrl = item.image || item.image_url;
@@ -44,6 +45,15 @@ export default function Playmat({ onAddToCart }) {
     }
   };
 
+  const handleResetPlaymat = () => {
+    setCustomImage(null);
+    setRawFile(null);
+    setFileName("");
+    setPosition({ x: 0, y: 0 });
+    setScale(1);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   const handleToggleRotate = () => {
     setRotation((prev) => (prev === 0 ? 90 : 0));
     setPosition({ x: 0, y: 0 });
@@ -52,23 +62,21 @@ export default function Playmat({ onAddToCart }) {
   const handleMouseDown = (e) => {
     e.preventDefault();
     setIsDragging(true);
-    setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+    dragStart.current = { x: e.clientX - position.x, y: e.clientY - position.y };
   };
 
   const handleMouseMove = (e) => {
     if (!isDragging) return;
-    setPosition({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
+    setPosition({ x: e.clientX - dragStart.current.x, y: e.clientY - dragStart.current.y });
   };
 
   const handleMouseUp = () => setIsDragging(false);
 
-  // MANEJADOR DE ZOOM AMPLIADO
   const handleWheel = (e) => {
     e.preventDefault();
-    const zoomSpeed = 0.05; // Sensibilidad de zoom más suave
+    const zoomSpeed = 0.05;
     setScale((prev) => {
       const newScale = e.deltaY < 0 ? prev + zoomSpeed : prev - zoomSpeed;
-      // Permite alejar hasta 0.1x y acercar hasta 8x
       return Math.min(Math.max(0.1, newScale), 8);
     });
   };
@@ -107,6 +115,14 @@ export default function Playmat({ onAddToCart }) {
 
   return (
     <div style={playmatContainerGridStyle}>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleImageUpload}
+        className="playmat-hidden-input"
+      />
+
       {/* COLUMNA IZQUIERDA: Catálogo */}
       <div style={catalogColumnStyle}>
         <PlaymatCatalog onSelectPlaymat={handleSelectFromCatalog} />
@@ -117,7 +133,11 @@ export default function Playmat({ onAddToCart }) {
         <div className="playmat-preview-column">
           <div
             ref={previewRef}
+            onClick={() => {
+              if (!customImage) fileInputRef.current?.click();
+            }}
             className={`playmat-preview-box ${isVertical ? "preview-vertical" : "preview-horizontal"}`}
+            style={{ cursor: !customImage ? "pointer" : "default" }}
           >
             {customImage && (
               <div
@@ -174,22 +194,32 @@ export default function Playmat({ onAddToCart }) {
 
         <div className="playmat-sidebar-column">
           <div className="playmat-controls-group">
-            <label className="playmat-btn btn-active playmat-full-width playmat-upload-label">
-              📁 Subir Imagen Propia ⚡
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="playmat-hidden-input"
-              />
-            </label>
-
             <button
               onClick={handleToggleRotate}
               className="playmat-btn btn-active playmat-full-width"
             >
               {rotation === 0 ? "Girar a Vertical 🔄" : "Girar a Horizontal 🔄"}
             </button>
+
+            {/* Botones contextuales cuando ya hay un diseño cargado */}
+            {customImage && (
+              <div className="playmat-image-actions">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="playmat-btn playmat-change-btn playmat-flex-1"
+                >
+                  Cambiar Imagen 📁
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResetPlaymat}
+                  className="playmat-btn playmat-reset-btn playmat-flex-1"
+                >
+                  Limpiar Playmat 🔄
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="playmat-selectors-group">
@@ -197,19 +227,19 @@ export default function Playmat({ onAddToCart }) {
               onClick={() => setCurrentBg(playmat1)}
               className={`playmat-btn playmat-flex-1 ${currentBg === playmat1 ? "btn-selected" : "btn-dark"}`}
             >
-              Playmat 1
+              Normal
             </button>
             <button
               onClick={() => setCurrentBg(playmat2)}
               className={`playmat-btn playmat-flex-1 ${currentBg === playmat2 ? "btn-selected" : "btn-dark"}`}
             >
-              Playmat 2
+              Borde
             </button>
             <button
               onClick={() => setCurrentBg(playmat3)}
               className={`playmat-btn playmat-flex-1 ${currentBg === playmat3 ? "btn-selected" : "btn-dark"}`}
             >
-              Playmat 3
+              Borde Negro
             </button>
           </div>
 

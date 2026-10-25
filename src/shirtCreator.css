@@ -1,5 +1,16 @@
 /* =========================================
-   1. ESTRUCTURA BASE (DESKTOP INTACTO)
+   BLOQUEO TOTAL DE SCROLL (PANTALLA LOCKED)
+========================================= */
+html, body {
+  overflow: hidden !important;
+  height: 100% !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* =========================================
+   1. ESTRUCTURA BASE (VERSIÓN DESKTOP LOCKED)
 ========================================= */
 .customizer-page-wrapper {
   display: flex;
@@ -7,21 +18,23 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  min-height: calc(100vh - 70px);
+  height: calc(100vh - 70px) !important;
+  max-height: calc(100vh - 70px) !important;
   padding: 10px 30px;
   box-sizing: border-box;
   gap: 20px;
-  overflow-x: hidden;
+  overflow: hidden !important;
+  position: relative;
 }
 
 .customizer-hidden-input {
   display: none;
 }
 
-/* SIDEBAR IZQUIERDO: CATÁLOGO */
+/* SIDEBAR: CATÁLOGO WEB (MÁS ANCHO Y CÓMODO) */
 .customizer-sidebar {
-  width: 270px;
-  min-width: 270px;
+  width: 320px;
+  min-width: 320px;
   background-color: #111113;
   border: 1px solid #27272a;
   border-radius: 12px;
@@ -103,17 +116,18 @@
   color: #ffffff;
 }
 
+/* LISTA EN CUADRÍCULA DE 2 COLUMNAS EN DESKTOP */
 .catalog-items-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 480px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  max-height: 520px;
   overflow-y: auto;
   padding-right: 4px;
 }
 
 .catalog-items-list::-webkit-scrollbar {
-  width: 4px;
+  width: 5px;
 }
 
 .catalog-items-list::-webkit-scrollbar-thumb {
@@ -121,41 +135,41 @@
   border-radius: 4px;
 }
 
+/* BOTÓN DE DISEÑO CUADRADO Y GRANDE (DESKTOP) */
 .catalog-item-card {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  height: auto;
+  min-height: 125px;
   background-color: #18181b;
   border: 1px solid #27272a;
-  border-radius: 8px;
-  padding: 6px 8px;
+  border-radius: 10px;
+  padding: 0;
   cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 }
 
 .catalog-item-card:hover {
-  background-color: #27272a;
-  border-color: #3f3f46;
-  transform: translateX(3px);
+  background-color: #222226;
+  border-color: #3b82f6;
+  transform: translateY(-2px);
 }
 
+/* IMAGEN DEL DISEÑO LLENANDO EL CUADRO (DESKTOP) */
 .catalog-thumb {
-  width: 40px;
-  height: 32px;
-  object-fit: cover;
-  border-radius: 4px;
-}
-
-.catalog-item-name {
-  color: #e4e4e7;
-  font-size: 12px;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: scale(1.4);
+  display: block;
 }
 
 .catalog-status {
+  grid-column: span 2;
   text-align: center;
   color: #71717a;
   font-size: 12px;
@@ -284,13 +298,13 @@
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
-  transform: translateY(140px);
+  transform: translateY(120px);
 }
 
 .zone-upload-btn:hover {
   background-color: #27272a;
   border-color: #3b82f6;
-  transform: translateY(140px) scale(1.03);
+  transform: translateY(120px) scale(1.2);
 }
 
 .zone-placeholder-text {
@@ -378,23 +392,43 @@
   color: #a1a1aa;
   font-size: 12px;
   margin: 0;
+  text-align: center;
 }
 
-/* PANEL DE COLOR DE DISEÑO: FILA LIMPIA */
+/* PANEL DE COLOR DE DISEÑO: DEBAJO DE LAS PLAYERAS EN DESKTOP */
 .tint-layer-panel {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  height: 48px !important;
-  padding: 6px 12px !important;
+  position: absolute !important;
+  top: 520px !important;              /* Debajo del dobladillo de la playera */
+  transform: translateX(-50%) !important;
+  width: auto !important;
+  height: 44px !important;
+  padding: 6px 14px !important;
+  background-color: rgba(17, 17, 19, 0.9) !important;
+  backdrop-filter: blur(8px) !important;
+  border: 1px solid #27272a !important;
+  border-radius: 25px !important;
+  z-index: 30 !important;
   box-sizing: border-box !important;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Coordenadas X Desktop perfectamente alineadas entre barra y botón */
+.tint-layer-panel.tint-pos-chest {
+  left: 24% !important;
+}
+
+.tint-layer-panel.tint-pos-abdomen {
+  left: 48% !important;
 }
 
 .tint-buttons-row {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 8px !important;
+  gap: 6px !important;
   width: 100% !important;
 }
 
@@ -409,6 +443,7 @@
   cursor: pointer !important;
   transition: all 0.15s ease !important;
   line-height: 1 !important;
+  flex-shrink: 0 !important;
 }
 
 .tint-original-btn.active {
@@ -418,8 +453,8 @@
 }
 
 .tint-preset-dot {
-  width: 22px !important;
-  height: 22px !important;
+  width: 20px !important;
+  height: 20px !important;
   border-radius: 50% !important;
   border: 2px solid #3f3f46 !important;
   cursor: pointer !important;
@@ -438,12 +473,48 @@
   transform: scale(1.1) !important;
 }
 
+/* BOTÓN DE LIMPIAR: DEBAJO DE LA BARRA FLOTANTE EN DESKTOP */
+.reset-designs-btn {
+  display: block !important;
+  position: absolute !important;
+  top: 574px !important;              /* Mismo eje Y debajo de la barra */
+  transform: translateX(-50%) !important;
+  width: auto !important;
+  max-width: 200px !important;
+  padding: 6px 14px !important;
+  background-color: rgba(39, 39, 42, 0.9) !important;
+  backdrop-filter: blur(8px) !important;
+  color: #f87171 !important;
+  border: 1px solid #7f1d1d !important;
+  border-radius: 20px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  z-index: 30 !important;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s ease !important;
+}
+
+.reset-designs-btn:hover {
+  background-color: #3f3f46 !important;
+  border-color: #ef4444 !important;
+}
+
+.reset-designs-btn.tint-pos-chest {
+  left: 24% !important;
+}
+
+.reset-designs-btn.tint-pos-abdomen {
+  left: 48% !important;
+}
+
+/* CÍRCULOS DE COLOR DE PLAYERA CENTRADOS */
 .color-selector {
   display: flex;
-  justify-content: flex-start;
-  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
   flex-wrap: wrap;
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
 .color-btn {
@@ -466,6 +537,7 @@
 
 .size-buttons-group {
   display: flex;
+  justify-content: center;
   gap: 6px;
   flex-wrap: wrap;
   margin-top: 8px;
@@ -492,18 +564,6 @@
   border-color: #3b82f6;
 }
 
-.reset-designs-btn {
-  background-color: #27272a;
-  color: #f87171;
-  border: 1px solid #7f1d1d;
-  font-size: 13px;
-}
-
-.reset-designs-btn:hover {
-  background-color: #3f3f46;
-  border-color: #ef4444;
-}
-
 .add-to-cart-btn {
   background-color: #2563eb;
   color: #ffffff;
@@ -518,10 +578,9 @@
 }
 
 /* =======================================================
-   4. ADAPTACIÓN RESPONSIVA (TOTALMENTE FIJO SIN SCROLL VACÍO)
+   4. ADAPTACIÓN RESPONSIVA (MOBILE TOTALMENTE AISLADO)
 ======================================================= */
 @media (max-width: 1180px) {
-  /* Fija la ventana al 100vh sin permitir desplazamiento fantasma hacia abajo */
   html, body {
     overflow: hidden !important;
     height: 100% !important;
@@ -537,7 +596,7 @@
     max-height: 100vh !important;
     padding: 10px 10px 15px 10px !important;
     margin: 0 !important;
-    overflow: hidden !important; /* Bloquea cualquier scroll vertical */
+    overflow: hidden !important;
     box-sizing: border-box !important;
   }
 
@@ -600,7 +659,7 @@
     transform: translateY(220px) scale(1.2) !important;
   }
 
-  /* 2. CATÁLOGO POSICIONADO DIRECTAMENTE (SIN TRANSLATEY FANTASMA) */
+  /* 2. CATÁLOGO POSICIONADO DIRECTAMENTE */
   .customizer-sidebar {
     order: 2 !important;
     position: absolute !important;
@@ -608,7 +667,6 @@
     left: 50% !important;
     transform: translateX(-50%) !important;
     width: 90% !important;
-   
     box-sizing: border-box !important;
     margin: 0 !important;
     z-index: 15 !important;
@@ -650,31 +708,62 @@
     border-radius: 0 !important;
   }
 
-  /* 3. BARRA DE COLOR DEL DISEÑO Y RESET FIJOS EN SU SITIO EXACTO */
+  /* 3. BARRA DE COLOR DEL DISEÑO Y RESET EN MÓVIL (COMPLETAMENTE AISLADOS DEL DESKTOP) */
   .tint-layer-panel {
     display: flex !important;
     position: absolute !important;
-    top: 440px !important;
+    top: 440px !important;              /* Debajo del dobladillo de la playera */
     left: 50% !important;
-    transform: translateX(-50%) transLateY(25px) !important;
-    width: 92% !important;
-    max-width: 440px !important;
-    height: 48px !important;
+    transform: translateX(-50%) !important;
+    width: auto !important;
+    max-width: 90% !important;
+    height: 44px !important;
+    padding: 6px 14px !important;
+    background-color: rgba(17, 17, 19, 0.9) !important;
+    backdrop-filter: blur(8px) !important;
+    border: 1px solid #27272a !important;
+    border-radius: 25px !important;
     box-sizing: border-box !important;
     z-index: 20 !important;
+    transition: none !important;
   }
 
+  /* Anula las clases dinámicas de escritorio para que la barra quede fija y centrada en móvil */
+  .tint-layer-panel.tint-pos-chest,
+  .tint-layer-panel.tint-pos-abdomen {
+    left: 50% !important;
+  }
+
+  /* Botón limpiar compacto debajo de las playeras a la derecha */
   .reset-designs-btn {
     display: block !important;
     position: absolute !important;
     top: 395px !important;
     right: 5% !important;
-    width: auto !important;
+    left: auto !important;
     transform: none !important;
-    z-index: 21 !important;
+    width: auto !important;
+    max-width: 160px !important;
+    padding: 6px 12px !important;
+    background-color: rgba(39, 39, 42, 0.95) !important;
+    border: 1px solid #7f1d1d !important;
+    border-radius: 8px !important;
+    font-size: 11px !important;
+    color: #f87171 !important;
+    white-space: nowrap !important;
+    z-index: 25 !important;
+    transition: none !important;
   }
 
-  /* 4. BOTÓN AGREGAR AL CARRITO FIJO JUSTO DEBAJO DEL CATÁLOGO */
+  /* Anula las clases dinámicas de escritorio para que el botón no se desplace en móvil */
+  .reset-designs-btn.tint-pos-chest,
+  .reset-designs-btn.tint-pos-abdomen {
+    left: auto !important;
+    right: 5% !important;
+    transform: none !important;
+  }
+
+  /* 4. BOTÓN AGREGAR AL CARRITO EN MÓVIL */
   .add-to-cart-btn {
     display: block !important;
     position: absolute !important;
