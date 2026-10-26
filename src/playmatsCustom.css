@@ -10,7 +10,7 @@ html, body {
 }
 
 /* =========================================
-   1. ESTRUCTURA BASE (DESKTOP)
+   1. ESTRUCTURA BASE GENERAL
 ========================================= */
 .playmat-main-layout {
   display: flex;
@@ -29,7 +29,7 @@ html, body {
   align-items: center;
 }
 
-/* CONTENEDOR DINÁMICO: Sincronizado a 0.3s ease con el borde */
+/* CONTENEDOR DINÁMICO */
 .playmat-preview-box {
   position: relative;
   background-color: #111113;
@@ -37,6 +37,20 @@ html, body {
   overflow: hidden !important;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   transition: width 0.3s ease, height 0.3s ease, transform 0.3s ease !important;
+  flex-shrink: 0 !important; /* Evita que el contenedor flexible lo aplaste */
+}
+
+/* DIMENSIONES BASE */
+.preview-horizontal {
+  width: 700px;
+  height: 410px;
+  aspect-ratio: 700 / 410 !important;
+}
+
+.preview-vertical {
+  width: 410px;
+  height: 700px;
+  aspect-ratio: 410 / 700 !important;
 }
 
 /* BOTÓN FLOTANTE CENTRADO SOBRE EL PLAYMAT VACÍO */
@@ -63,16 +77,6 @@ html, body {
   background-color: #27272a;
   border-color: #3b82f6;
   transform: translate(-50%, -50%) scale(1.05);
-}
-
-.preview-horizontal {
-  width: 700px;
-  height: 410px;
-}
-
-.preview-vertical {
-  width: 410px;
-  height: 700px;
 }
 
 .playmat-drag-area {
@@ -209,7 +213,208 @@ div[style*="width:420px"] .playmat-item-name {
 }
 
 /* =======================================================
-   2. ADAPTACIÓN RESPONSIVA (CENTRADO Y GIRO SUAVE)
+   AJUSTES EXCLUSIVOS DE LA VERSIÓN WEB / DESKTOP (>= 1181px)
+======================================================= */
+@media (min-width: 1181px) {
+  .playmat-main-layout {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 30px !important;
+    width: 100% !important;
+    height: calc(100vh - 90px) !important;
+    padding: 10px 20px !important;
+    box-sizing: border-box !important;
+  }
+
+  .playmat-preview-column {
+    flex: 1 !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    height: 100% !important;
+    transform: translateY(-40px) !important;
+    transition: transform 0.3s ease !important;
+  }
+
+  body:has(.preview-vertical) .playmat-preview-column {
+    transform: translateY(0px) !important;
+  }
+
+  .preview-horizontal {
+    width: 860px !important;
+    height: 500px !important;
+    aspect-ratio: 860 / 500 !important;
+    transform: none !important;
+  }
+
+  .preview-vertical {
+    width: 420px !important;
+    height: 720px !important;
+    aspect-ratio: 420 / 720 !important;
+    transform: none !important;
+  }
+
+  .playmat-sidebar-column {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    gap: 20px !important;
+    width: 330px !important;
+    min-width: 330px !important;
+    max-width: 330px !important;
+    height: auto !important;
+    background-color: #111113 !important;
+    border: 1px solid #27272a !important;
+    border-radius: 16px !important;
+    padding: 24px 20px !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+    margin-right: 10px !important;
+    transform: translateY(-40px) !important;
+    transition: transform 0.3s ease !important;
+  }
+
+  body:has(.preview-vertical) .playmat-sidebar-column {
+    transform: translateY(0px) !important;
+  }
+
+  .playmat-controls-group {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .playmat-controls-group > button:first-child {
+    padding: 12px !important;
+    font-size: 13px !important;
+    border-radius: 10px !important;
+  }
+
+  .playmat-image-actions {
+    display: flex !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+
+  .playmat-image-actions button {
+    flex: 1 !important;
+    padding: 10px 8px !important;
+    font-size: 12px !important;
+    border-radius: 8px !important;
+    white-space: nowrap !important;
+  }
+
+  .playmat-selectors-group {
+    display: flex !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .playmat-selectors-group .playmat-btn {
+    flex: 1 !important;
+    padding: 10px 4px !important;
+    font-size: 12px !important;
+    text-align: center !important;
+    border-radius: 8px !important;
+  }
+
+  .playmat-cart-btn {
+    padding: 14px 20px !important;
+    font-size: 13px !important;
+    border-radius: 10px !important;
+  }
+
+  div[style*="width: 420px"] ul,
+  div[style*="width:420px"] ul,
+  div[style*="width: 420px"] div:has(> button),
+  div[style*="width:420px"] div:has(> button),
+  div[style*="width: 420px"] div:has(> li),
+  div[style*="width:420px"] div:has(> li) {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    list-style: none !important;
+  }
+
+  div[style*="width: 420px"] li,
+  div[style*="width: 420px"] button,
+  div[style*="width:420px"] li,
+  div[style*="width:420px"] button {
+    width: 100% !important;
+    height: 125px !important;
+    min-height: 125px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+    display: block !important;
+    background-color: #111113 !important;
+    border: 1px solid #27272a !important;
+    cursor: pointer !important;
+    position: relative !important;
+    transition: transform 0.15s ease, border-color 0.15s ease !important;
+  }
+
+  div[style*="width: 420px"] button:hover,
+  div[style*="width:420px"] button:hover,
+  div[style*="width: 420px"] li:hover,
+  div[style*="width:420px"] li:hover {
+    border-color: #3b82f6 !important;
+    transform: translateY(-2px) !important;
+  }
+
+  div[style*="width: 420px"] button > *,
+  div[style*="width: 420px"] li > *,
+  div[style*="width:420px"] button > *,
+  div[style*="width:420px"] li > * {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 100% !important;
+    min-height: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+  }
+
+  div[style*="width: 420px"] img,
+  div[style*="width:420px"] img {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 100% !important;
+    min-height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    pointer-events: none !important;
+  }
+
+  div[style*="width: 420px"] input,
+  div[style*="width:420px"] input {
+    width: 100% !important;
+    padding: 10px 14px !important;
+    border-radius: 8px !important;
+    background-color: #111113 !important;
+    border: 1px solid #27272a !important;
+    color: #ffffff !important;
+    font-size: 13px !important;
+    margin-bottom: 12px !important;
+    box-sizing: border-box !important;
+    outline: none !important;
+  }
+}
+
+/* =======================================================
+   2. ADAPTACIÓN RESPONSIVA (MOBILE: RELACIÓN DE ASPECTO BLINDADA)
 ======================================================= */
 @media (max-width: 1180px) {
   div[style*="calc(100vh - 80px)"],
@@ -231,7 +436,7 @@ div[style*="width:420px"] .playmat-item-name {
   /* BOTÓN GIRAR (CENTRADO EN EJE X ARRIBA) */
   .playmat-controls-group > button:first-child {
     position: absolute !important;
-    top: -40px !important;
+    top: 15px !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
     width: auto !important;
@@ -269,7 +474,7 @@ div[style*="width:420px"] .playmat-item-name {
     height: 440px !important;
   }
 
-  /* COLUMNA DE VISTA PREVIA: CENTRADO ABSOLUTO EXACTO */
+  /* COLUMNA DE VISTA PREVIA */
   .playmat-preview-column {
     position: absolute !important;
     top: 50% !important;
@@ -285,21 +490,35 @@ div[style*="width:420px"] .playmat-item-name {
     pointer-events: auto !important;
   }
 
-  .playmat-preview-box {
-    margin: 0 auto !important;
-  }
-
-  /* Giro suave idéntico al borde (0.3s ease) */
+  /* Blindaje de dimensiones y proporción de aspecto */
   .preview-horizontal {
-    transform: scale(0.7) !important;
+    width: 700px !important;
+    height: 410px !important;
+    min-width: 700px !important;
+    min-height: 410px !important;
+    max-width: 700px !important;
+    max-height: 410px !important;
+    aspect-ratio: 700 / 410 !important;
+    transform: scale(0.60) !important;
     transform-origin: center center !important;
     transition: transform 0.3s ease, width 0.3s ease, height 0.3s ease !important;
   }
 
   .preview-vertical {
-    transform: scale(0.62) !important;
+    width: 410px !important;
+    height: 700px !important;
+    min-width: 410px !important;
+    min-height: 700px !important;
+    max-width: 410px !important;
+    max-height: 700px !important;
+    aspect-ratio: 410 / 700 !important;
+    transform: scale(0.50) !important;
     transform-origin: center center !important;
     transition: transform 0.3s ease, width 0.3s ease, height 0.3s ease !important;
+  }
+
+  .playmat-preview-box {
+    margin: 0 auto !important;
   }
 
   /* AISLAMIENTO DE LA BARRA LATERAL PARA NO DEFORMAR EL CENTRADO */
@@ -510,7 +729,7 @@ div[style*="width:420px"] .playmat-item-name {
     position: absolute !important;
     top: 615px !important;
     left: 50% !important;
-    transform: translateX(-50%) transLateY(-70px) !important;
+    transform: translateX(-50%) !important;
     width: 94% !important;
     max-width: 460px !important;
     padding: 14px !important;
@@ -527,32 +746,48 @@ div[style*="width:420px"] .playmat-item-name {
   }
 }
 
+/* =======================================================
+   ADAPTACIÓN PARA PANTALLAS MUY ESTRECHAS (SIN DEFORMACIÓN)
+======================================================= */
 @media (max-width: 440px) {
+  /* Escala proporcional reducida para no colisionar con los botones laterales */
   .preview-horizontal {
-    transform: scale(0.52) !important;
+    transform: scale(0.46) !important;
   }
 
   .preview-vertical {
-    transform: scale(0.44) !important;
+    transform: scale(0.42) !important;
   }
 
   .playmat-image-actions {
     left: 4px !important;
-    width: 58px !important;
+    width: 52px !important;
   }
 
   .playmat-image-actions button {
-    width: 58px !important;
+    width: 52px !important;
+    height: 90px !important;
     font-size: 10px !important;
   }
 
   .playmat-selectors-group {
     right: 4px !important;
-    width: 58px !important;
+    width: 52px !important;
   }
 
   .playmat-selectors-group .playmat-btn {
-    width: 58px !important;
+    width: 52px !important;
+    height: 60px !important;
     font-size: 10px !important;
+  }
+}
+
+@media (max-width: 375px) {
+  .preview-horizontal {
+    transform: scale(0.40) !important;
+  }
+
+  .preview-vertical {
+    transform: scale(0.38) !important;
   }
 }
